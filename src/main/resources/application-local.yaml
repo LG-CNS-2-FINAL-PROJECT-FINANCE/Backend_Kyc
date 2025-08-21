@@ -1,0 +1,27 @@
+server:
+  port: 8080
+
+spring:
+  datasource:
+    url: jdbc:mariadb://localhost:3306/kyc?serverTimezone=UTC&characterEncoding=UTF-8
+    username: root
+    password: 1234
+    driver-class-name: org.mariadb.jdbc.Driver
+    hikari:
+      connection-test-query: SELECT 1
+      validation-timeout: 5000
+
+  jpa:
+    hibernate:
+      ddl-auto: none
+    generate-ddl: true
+    show-sql: true
+    open-in-view: false
+
+  kafka:
+    producer:
+      bootstrap-servers: localhost:9092
+
+apick:
+  base-url: https://apick.app
+  auth-key: 4d6ffcaac332fee2990f3a027d086e61

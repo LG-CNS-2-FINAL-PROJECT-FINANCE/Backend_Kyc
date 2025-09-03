@@ -5,9 +5,12 @@ import org.springframework.stereotype.Service;
 import com.ddiring.Backend_Kyc.api.user.UserClient;
 import com.ddiring.Backend_Kyc.api.user.UserNameDto;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.util.HashMap;
 import java.util.Map;
 
+@Slf4j
 @Service
 public class ApickResidentIdService {
 
@@ -30,18 +33,21 @@ public class ApickResidentIdService {
             err.put("error", "Missing apick.auth-key configuration");
             return err;
         }
+
+        String n = name == null ? "" : name.trim();
         try {
             if (userName.getUserName().equals(name)) {
-                String n = name == null ? "" : name.trim();
-                String r1 = rrn1 == null ? "" : rrn1.replaceAll("[^0-9]", "").trim();
-                String r2 = rrn2 == null ? "" : rrn2.replaceAll("[^0-9]", "").trim();
-                String d = issueDateYmd == null ? "" : issueDateYmd.replaceAll("[^0-9]", "").trim();
-                return client.verifyResidentId(authKey, n, r1, r2, d);
+                log.info("이름이 일치합니다. userSeq={}, name={}",
+                        userSeq, n);
             }
         } catch (Exception e) {
-            throw new RuntimeException("이름이 일치하지 않습니다.", e);
+            log.error("이름이 일치하지 않습니다. userSeq={}, name={}: {}",
+                    userSeq, n, e.getMessage());
         }
+        String r1 = rrn1 == null ? "" : rrn1.replaceAll("[^0-9]", "").trim();
+        String r2 = rrn2 == null ? "" : rrn2.replaceAll("[^0-9]", "").trim();
+        String d = issueDateYmd == null ? "" : issueDateYmd.replaceAll("[^0-9]", "").trim();
 
-        return null;
+        return client.verifyResidentId(authKey, n, r1, r2, d);
     }
 }

@@ -25,3 +25,6 @@ spring:
 apick:
   base-url: https://apick.app
   auth-key: 4d6ffcaac332fee2990f3a027d086e61
+
+user:
+  base-url: http://localhost:8081

@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/test/kyc/apick")
+@RequestMapping("/api/kyc")
 public class ApickResidentIdController {
     private final ApickResidentIdService service;
 

@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RequestPart;
 
 import java.util.Map;
 
-@FeignClient(name = "apickClient", url = "${apick.base-url:https://apick.app}")
+@FeignClient(name = "apickClient", url = "${apick.base-url}")
 public interface ApickClient {
 
     @PostMapping(value = "/rest/identi_card/1", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -17,6 +17,5 @@ public interface ApickClient {
             @RequestPart("name") String name,
             @RequestPart("rrn1") String rrn1,
             @RequestPart("rrn2") String rrn2,
-            @RequestPart("date") String issueDate
-    );
+            @RequestPart("date") String issueDate);
 }

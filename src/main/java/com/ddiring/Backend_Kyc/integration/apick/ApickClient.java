@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RequestPart;
 
 import java.util.Map;
 
-@FeignClient(name = "apickClient", url = "${apick.base-url}")
+@FeignClient(name = "apickClient", url = "${apick.base-url:https://apick.app}")
 public interface ApickClient {
 
     @PostMapping(value = "/rest/identi_card/1", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

@@ -1,8 +1,8 @@
 package com.ddiring.Backend_Kyc.common.exception.handler;
 
-import com.ddiring.backend_user.common.exception.CustomException;
-import com.ddiring.backend_user.common.exception.ErrorCode;
-import com.ddiring.backend_user.common.response.ApiResponse;
+import com.ddiring.Backend_Kyc.common.exception.CustomException;
+import com.ddiring.Backend_Kyc.common.exception.ErrorCode;
+import com.ddiring.Backend_Kyc.common.response.ApiResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;

@@ -1,5 +1,8 @@
 package com.ddiring.Backend_Kyc.integration.apick;
 
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.http.*;
 import org.springframework.util.LinkedMultiValueMap;
@@ -53,7 +56,9 @@ public class ApickResidentIdService {
 
         log.info("[Apick API 요청] CL_AUTH_KEY={}, name={}, rrn1={}, rrn2={}, date={}", authKey, n, r1, r2, d);
 
-        RestTemplate restTemplate = new RestTemplate();
+        CloseableHttpClient httpClient = HttpClients.custom().build();
+        HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(httpClient);
+        RestTemplate restTemplate = new RestTemplate(factory);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.MULTIPART_FORM_DATA);

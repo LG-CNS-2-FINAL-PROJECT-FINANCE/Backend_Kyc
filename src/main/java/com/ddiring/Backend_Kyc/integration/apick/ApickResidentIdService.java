@@ -1,5 +1,6 @@
 package com.ddiring.Backend_Kyc.integration.apick;
 
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -11,6 +12,7 @@ import com.ddiring.Backend_Kyc.api.user.UserClient;
 import com.ddiring.Backend_Kyc.api.user.UserNameDto;
 
 import lombok.extern.slf4j.Slf4j;
+import reactor.netty.http.client.HttpClient;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -21,10 +23,12 @@ public class ApickResidentIdService {
 
     private final UserClient userClient;
     private final ApickProperties props;
+    private final HttpClient httpClient;
 
-    public ApickResidentIdService(UserClient userClient, ApickProperties props) {
+    public ApickResidentIdService(UserClient userClient, ApickProperties props, HttpClient httpClient) {
         this.userClient = userClient;
         this.props = props;
+        this.httpClient = httpClient;
     }
 
     public Map<String, Object> verify(String authorization, String userSeq, String name, String rrn1, String rrn2,
@@ -53,6 +57,7 @@ public class ApickResidentIdService {
         log.info("[Apick API 요청] CL_AUTH_KEY={}, name={}, rrn1={}, rrn2={}, date={}", authKey, n, r1, r2, d);
 
         WebClient webClient = WebClient.builder()
+                .clientConnector(new ReactorClientHttpConnector(httpClient))
                 .baseUrl(props.getBaseUrl())
                 .defaultHeader("CL_AUTH_KEY", authKey)
                 .defaultHeader(HttpHeaders.USER_AGENT, "curl/7.88.1")

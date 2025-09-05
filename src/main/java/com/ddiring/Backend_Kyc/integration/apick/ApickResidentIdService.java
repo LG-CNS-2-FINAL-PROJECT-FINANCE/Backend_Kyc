@@ -38,10 +38,10 @@ public class ApickResidentIdService {
         String n = name == null ? "" : name.trim();
         try {
             if (userName.getUserName().equals(name)) {
-                log.info("이름이 일치합니다. userSeq={}, name={}", userSeq, n);
+                log.info("이름이 일치합니다. userName={}, name={}", userName, n);
             }
         } catch (Exception e) {
-            log.error("이름이 일치하지 않습니다. userSeq={}, name={}: {}", userSeq, n, e.getMessage());
+            log.error("이름이 일치하지 않습니다. userName={}, name={}: {}", userName, n, e.getMessage());
         }
         String r1 = rrn1 == null ? "" : rrn1.replaceAll("[^0-9]", "").trim();
         String r2 = rrn2 == null ? "" : rrn2.replaceAll("[^0-9]", "").trim();

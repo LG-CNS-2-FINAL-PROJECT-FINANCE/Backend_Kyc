@@ -53,11 +53,19 @@ public class ApickResidentIdService {
         log.info("[Apick API 요청] CL_AUTH_KEY={}, name={}, rrn1={}, rrn2={}, date={}", authKey, n, r1, r2, d);
 
         WebClient webClient = WebClient.builder()
-                .baseUrl("https://apick.app")
+                .baseUrl(props.getBaseUrl())
                 .defaultHeader("CL_AUTH_KEY", authKey)
                 .defaultHeader(HttpHeaders.USER_AGENT, "curl/7.88.1")
                 .defaultHeader(HttpHeaders.ORIGIN, "https://apick.app")
                 .defaultHeader(HttpHeaders.REFERER, "https://apick.app/")
+                .filter((request, next) -> {
+                    log.debug("[WebClient RAW 요청 헤더] {} {}\n{}", request.method(), request.url(), request.headers());
+                    if (request.headers().getContentType() != null &&
+                            request.headers().getContentType().toString().startsWith("multipart/form-data")) {
+                        log.debug("[WebClient RAW multipart Content-Type] {}", request.headers().getContentType());
+                    }
+                    return next.exchange(request);
+                })
                 .build();
 
         LinkedMultiValueMap<String, String> formData = new LinkedMultiValueMap<>();

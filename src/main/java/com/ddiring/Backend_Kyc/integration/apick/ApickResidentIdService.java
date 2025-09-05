@@ -24,8 +24,9 @@ public class ApickResidentIdService {
         this.props = props;
     }
 
-    public Map<String, Object> verify(String userSeq, String name, String rrn1, String rrn2, String issueDateYmd) {
-        UserNameDto userName = userClient.getUserName(userSeq);
+    public Map<String, Object> verify(String authorization, String userSeq, String name, String rrn1, String rrn2,
+            String issueDateYmd) {
+        UserNameDto userName = userClient.getUserName(authorization, userSeq);
 
         String authKey = props.getAuthKey();
         if (authKey == null || authKey.isBlank()) {

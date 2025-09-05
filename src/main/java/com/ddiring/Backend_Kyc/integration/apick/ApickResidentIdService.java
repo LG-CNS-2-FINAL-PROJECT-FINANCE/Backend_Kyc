@@ -5,6 +5,8 @@ import org.springframework.http.*;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.core.ParameterizedTypeReference;
 
 import com.ddiring.Backend_Kyc.api.user.UserClient;
 import com.ddiring.Backend_Kyc.api.user.UserNameDto;
@@ -55,21 +57,34 @@ public class ApickResidentIdService {
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+        headers.setAccept(java.util.List.of(MediaType.APPLICATION_JSON));
         headers.set("CL_AUTH_KEY", authKey);
+        headers.set(HttpHeaders.USER_AGENT, "curl/7.88.1");
 
-        MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
-        body.add("name", n); // 한글 그대로 전달
+        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+        body.add("name", n);
         body.add("rrn1", r1);
         body.add("rrn2", r2);
         body.add("date", d);
 
-        HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(body, headers);
+        HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
 
-        ResponseEntity<Map> response = restTemplate.postForEntity(
-                "https://apick.app/rest/identi_card/1",
-                requestEntity,
-                Map.class);
-
-        return response.getBody();
+        try {
+            ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
+                    "https://apick.app/rest/identi_card/1",
+                    HttpMethod.POST,
+                    requestEntity,
+                    new ParameterizedTypeReference<Map<String, Object>>() {
+                    });
+            log.info("[Apick API 응답] status={}, bodyKeys={}", response.getStatusCode(),
+                    response.getBody() != null ? response.getBody().keySet() : null);
+            return response.getBody();
+        } catch (HttpClientErrorException e) {
+            log.error("[Apick API 오류] status={}, body={}", e.getStatusCode(), e.getResponseBodyAsString());
+            Map<String, Object> err = new HashMap<>();
+            err.put("status", e.getStatusCode().value());
+            err.put("body", e.getResponseBodyAsString());
+            return err;
+        }
     }
 }

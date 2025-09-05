@@ -2,7 +2,6 @@ package com.ddiring.Backend_Kyc.integration.apick;
 
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.http.*;
@@ -58,7 +57,7 @@ public class ApickResidentIdService {
 
         WebClient webClient = WebClient.builder()
                 .clientConnector(new ReactorClientHttpConnector(httpClient))
-                .baseUrl(props.getBaseUrl())
+                .baseUrl("https://apick.app")
                 .defaultHeader("CL_AUTH_KEY", authKey)
                 .defaultHeader(HttpHeaders.USER_AGENT, "curl/7.88.1")
                 .defaultHeader(HttpHeaders.ORIGIN, "https://apick.app")

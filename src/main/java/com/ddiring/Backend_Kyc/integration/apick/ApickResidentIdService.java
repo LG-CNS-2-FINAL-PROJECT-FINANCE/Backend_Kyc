@@ -60,6 +60,8 @@ public class ApickResidentIdService {
         headers.setAccept(java.util.List.of(MediaType.APPLICATION_JSON));
         headers.set("CL_AUTH_KEY", authKey);
         headers.set(HttpHeaders.USER_AGENT, "curl/7.88.1");
+        headers.set(HttpHeaders.ORIGIN, "https://apick.app");
+        headers.set(HttpHeaders.REFERER, "https://apick.app/");
 
         MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
         body.add("name", n);
@@ -69,18 +71,38 @@ public class ApickResidentIdService {
 
         HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
 
+        String url = "https://apick.app/rest/identi_card/1";
         try {
+            log.info("[Apick API 요청 헤더] {}", headers);
             ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
-                    "https://apick.app/rest/identi_card/1",
+                    url,
                     HttpMethod.POST,
                     requestEntity,
                     new ParameterizedTypeReference<Map<String, Object>>() {
                     });
-            log.info("[Apick API 응답] status={}, bodyKeys={}", response.getStatusCode(),
+            log.info("[Apick API 응답] url={}, status={}, bodyKeys={}", url, response.getStatusCode(),
                     response.getBody() != null ? response.getBody().keySet() : null);
             return response.getBody();
         } catch (HttpClientErrorException e) {
-            log.error("[Apick API 오류] status={}, body={}", e.getStatusCode(), e.getResponseBodyAsString());
+            log.error("[Apick API 오류] url={}, status={}, body={}", url, e.getStatusCode(), e.getResponseBodyAsString());
+            if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
+                String retryUrl = "https://apick.app/rest/identi_card/1/";
+                try {
+                    log.info("[Apick API 재시도] url={}, 헤더={}", retryUrl, headers);
+                    ResponseEntity<Map<String, Object>> retry = restTemplate.exchange(
+                            retryUrl,
+                            HttpMethod.POST,
+                            requestEntity,
+                            new ParameterizedTypeReference<Map<String, Object>>() {
+                            });
+                    log.info("[Apick API 재시도 응답] url={}, status={}, bodyKeys={}", retryUrl, retry.getStatusCode(),
+                            retry.getBody() != null ? retry.getBody().keySet() : null);
+                    return retry.getBody();
+                } catch (HttpClientErrorException e2) {
+                    log.error("[Apick API 재시도 오류] url={}, status={}, body={}", retryUrl, e2.getStatusCode(),
+                            e2.getResponseBodyAsString());
+                }
+            }
             Map<String, Object> err = new HashMap<>();
             err.put("status", e.getStatusCode().value());
             err.put("body", e.getResponseBodyAsString());

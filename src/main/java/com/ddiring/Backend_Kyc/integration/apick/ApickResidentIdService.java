@@ -1,14 +1,10 @@
 package com.ddiring.Backend_Kyc.integration.apick;
 
-import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
-import org.apache.hc.client5.http.impl.classic.HttpClients;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
-import org.springframework.http.*;
 import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.http.*;
 import org.springframework.core.ParameterizedTypeReference;
 
 import com.ddiring.Backend_Kyc.api.user.UserClient;
@@ -56,61 +52,35 @@ public class ApickResidentIdService {
 
         log.info("[Apick API 요청] CL_AUTH_KEY={}, name={}, rrn1={}, rrn2={}, date={}", authKey, n, r1, r2, d);
 
-        CloseableHttpClient httpClient = HttpClients.custom().build();
-        HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(httpClient);
-        RestTemplate restTemplate = new RestTemplate(factory);
+        WebClient webClient = WebClient.builder()
+                .baseUrl("https://apick.app")
+                .defaultHeader("CL_AUTH_KEY", authKey)
+                .defaultHeader(HttpHeaders.USER_AGENT, "curl/7.88.1")
+                .defaultHeader(HttpHeaders.ORIGIN, "https://apick.app")
+                .defaultHeader(HttpHeaders.REFERER, "https://apick.app/")
+                .build();
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.MULTIPART_FORM_DATA);
-        headers.setAccept(java.util.List.of(MediaType.APPLICATION_JSON));
-        headers.set("CL_AUTH_KEY", authKey);
-        headers.set(HttpHeaders.USER_AGENT, "curl/7.88.1");
-        headers.set(HttpHeaders.ORIGIN, "https://apick.app");
-        headers.set(HttpHeaders.REFERER, "https://apick.app/");
+        LinkedMultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
+        formData.add("name", n);
+        formData.add("rrn1", r1);
+        formData.add("rrn2", r2);
+        formData.add("date", d);
 
-        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
-        body.add("name", n);
-        body.add("rrn1", r1);
-        body.add("rrn2", r2);
-        body.add("date", d);
-
-        HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
-
-        String url = "https://apick.app/rest/identi_card/1";
         try {
-            log.info("[Apick API 요청 헤더] {}", headers);
-            ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
-                    url,
-                    HttpMethod.POST,
-                    requestEntity,
-                    new ParameterizedTypeReference<Map<String, Object>>() {
-                    });
-            log.info("[Apick API 응답] url={}, status={}, bodyKeys={}", url, response.getStatusCode(),
-                    response.getBody() != null ? response.getBody().keySet() : null);
-            return response.getBody();
-        } catch (HttpClientErrorException e) {
-            log.error("[Apick API 오류] url={}, status={}, body={}", url, e.getStatusCode(), e.getResponseBodyAsString());
-            if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
-                String retryUrl = "https://apick.app/rest/identi_card/1/";
-                try {
-                    log.info("[Apick API 재시도] url={}, 헤더={}", retryUrl, headers);
-                    ResponseEntity<Map<String, Object>> retry = restTemplate.exchange(
-                            retryUrl,
-                            HttpMethod.POST,
-                            requestEntity,
-                            new ParameterizedTypeReference<Map<String, Object>>() {
-                            });
-                    log.info("[Apick API 재시도 응답] url={}, status={}, bodyKeys={}", retryUrl, retry.getStatusCode(),
-                            retry.getBody() != null ? retry.getBody().keySet() : null);
-                    return retry.getBody();
-                } catch (HttpClientErrorException e2) {
-                    log.error("[Apick API 재시도 오류] url={}, status={}, body={}", retryUrl, e2.getStatusCode(),
-                            e2.getResponseBodyAsString());
-                }
-            }
+            Map<String, Object> response = webClient.post()
+                    .uri("/rest/identi_card/1")
+                    .contentType(MediaType.MULTIPART_FORM_DATA)
+                    .bodyValue(formData)
+                    .retrieve()
+                    .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {
+                    })
+                    .block();
+            log.info("[Apick API 응답] bodyKeys={}", response != null ? response.keySet() : null);
+            return response;
+        } catch (Exception e) {
+            log.error("[Apick API 오류] WebClient 요청 실패: {}", e.getMessage(), e);
             Map<String, Object> err = new HashMap<>();
-            err.put("status", e.getStatusCode().value());
-            err.put("body", e.getResponseBodyAsString());
+            err.put("error", e.getMessage());
             return err;
         }
     }

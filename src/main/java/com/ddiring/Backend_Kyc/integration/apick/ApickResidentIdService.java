@@ -59,9 +59,6 @@ public class ApickResidentIdService {
                 .clientConnector(new ReactorClientHttpConnector(httpClient))
                 .baseUrl("https://apick.app")
                 .defaultHeader("CL_AUTH_KEY", authKey)
-                .defaultHeader(HttpHeaders.USER_AGENT, "curl/7.88.1")
-                .defaultHeader(HttpHeaders.ORIGIN, "https://apick.app")
-                .defaultHeader(HttpHeaders.REFERER, "https://apick.app/")
                 .filter((request, next) -> {
                     log.debug("[WebClient RAW 요청 헤더] {} {}\n{}", request.method(), request.url(), request.headers());
                     if (request.headers().getContentType() != null &&

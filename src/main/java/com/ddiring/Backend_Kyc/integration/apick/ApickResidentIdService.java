@@ -4,7 +4,6 @@ import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.http.*;
 import org.springframework.core.ParameterizedTypeReference;
 
 import com.ddiring.Backend_Kyc.api.user.UserClient;
@@ -78,7 +77,6 @@ public class ApickResidentIdService {
         try {
             Map<String, Object> response = webClient.post()
                     .uri("/rest/identi_card/1")
-                    .contentType(MediaType.MULTIPART_FORM_DATA)
                     .bodyValue(formData)
                     .retrieve()
                     .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {

@@ -9,6 +9,7 @@ import org.springframework.core.ParameterizedTypeReference;
 import com.ddiring.Backend_Kyc.api.user.UserClient;
 import com.ddiring.Backend_Kyc.api.user.UserNameDto;
 import com.ddiring.Backend_Kyc.common.exception.ErrorCode;
+import com.ddiring.Backend_Kyc.common.util.PrivacyMaskUtils;
 
 import lombok.extern.slf4j.Slf4j;
 import reactor.netty.http.client.HttpClient;
@@ -44,26 +45,38 @@ public class ApickResidentIdService {
         String n = name == null ? "" : name.trim();
         try {
             if (userName.getUserName().equals(name)) {
-                log.info("이름이 일치합니다. userName={}, name={}", userName, n);
+                log.info("이름이 일치합니다. userName={}, name={}", PrivacyMaskUtils.maskName(userName.getUserName()),
+                        PrivacyMaskUtils.maskName(n));
             }
         } catch (Exception e) {
-            log.error("이름이 일치하지 않습니다. userName={}, name={}: {}", userName, n, e.getMessage());
+            log.error("이름이 일치하지 않습니다. userName={}, name={}: {}", PrivacyMaskUtils.maskName(userName.getUserName()),
+                    PrivacyMaskUtils.maskName(n), e.getMessage());
         }
         String r1 = rrn1 == null ? "" : rrn1.replaceAll("[^0-9]", "").trim();
         String r2 = rrn2 == null ? "" : rrn2.replaceAll("[^0-9]", "").trim();
         String d = issueDateYmd == null ? "" : issueDateYmd.replaceAll("[^0-9]", "").trim();
 
-        log.info("[Apick API 요청] CL_AUTH_KEY={}, name={}, rrn1={}, rrn2={}, date={}", authKey, n, r1, r2, d);
+        log.info("[Apick API 요청] CL_AUTH_KEY={}, name={}, rrn1={}, rrn2={}, date={}",
+                PrivacyMaskUtils.maskApiKey(authKey),
+                PrivacyMaskUtils.maskName(n),
+                PrivacyMaskUtils.maskRrn1(r1),
+                PrivacyMaskUtils.maskRrn2(r2),
+                PrivacyMaskUtils.maskDate(d));
 
         WebClient webClient = WebClient.builder()
                 .clientConnector(new ReactorClientHttpConnector(httpClient))
                 .baseUrl("https://apick.app")
                 .defaultHeader("CL_AUTH_KEY", authKey)
                 .filter((request, next) -> {
-                    log.debug("[WebClient RAW 요청 헤더] {} {}\n{}", request.method(), request.url(), request.headers());
-                    if (request.headers().getContentType() != null &&
-                            request.headers().getContentType().toString().startsWith("multipart/form-data")) {
-                        log.debug("[WebClient RAW multipart Content-Type] {}", request.headers().getContentType());
+                    if (log.isDebugEnabled()) {
+                        String maskedHeaders = request.headers().toString()
+                                .replaceAll("CL_AUTH_KEY=([^,\\]]+)",
+                                        "CL_AUTH_KEY=" + PrivacyMaskUtils.maskApiKey(authKey));
+                        log.debug("[WebClient RAW 요청 헤더] {} {}\n{}", request.method(), request.url(), maskedHeaders);
+                        if (request.headers().getContentType() != null &&
+                                request.headers().getContentType().toString().startsWith("multipart/form-data")) {
+                            log.debug("[WebClient RAW multipart Content-Type] {}", request.headers().getContentType());
+                        }
                     }
                     return next.exchange(request);
                 })
@@ -97,10 +110,7 @@ public class ApickResidentIdService {
         }
     }
 
-    /**
-     * Apick API 응답을 검증합니다.
-     * data.result가 1이 아니면 신원인증 실패 예외를 발생시킵니다.
-     */
+    // 신원인증 API 응답 검증
     private void validateApickResponse(Map<String, Object> response) {
         if (response == null) {
             log.error("[신원인증 실패] API 응답이 null입니다.");

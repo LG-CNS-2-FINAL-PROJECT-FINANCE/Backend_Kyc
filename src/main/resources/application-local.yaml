@@ -28,3 +28,18 @@ apick:
 
 user:
   base-url: http://localhost:8081
+
+# 로깅 설정 - 개인정보 보호를 위한 로그 레벨 관리
+logging:
+  level:
+    # 기본 로그 레벨
+    root: INFO
+    # KYC 관련 패키지는 INFO 레벨로 제한하여 DEBUG 정보 노출 방지
+    "[com.ddiring.Backend_Kyc.integration.apick]": INFO
+    # Spring Security, WebClient 등의 상세 로그 제한
+    "[org.springframework.web.reactive.function.client]": WARN
+    "[reactor.netty.http.client]": WARN
+  pattern:
+    # 로그 패턴에서 민감한 정보 노출 방지
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"

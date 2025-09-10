@@ -8,6 +8,7 @@ import org.springframework.core.ParameterizedTypeReference;
 
 import com.ddiring.Backend_Kyc.api.user.UserClient;
 import com.ddiring.Backend_Kyc.api.user.UserNameDto;
+import com.ddiring.Backend_Kyc.common.exception.ErrorCode;
 
 import lombok.extern.slf4j.Slf4j;
 import reactor.netty.http.client.HttpClient;
@@ -83,6 +84,10 @@ public class ApickResidentIdService {
                     })
                     .block();
             log.info("[Apick API 응답] bodyKeys={}", response != null ? response.keySet() : null);
+
+            // API 응답 검증
+            validateApickResponse(response);
+
             return response;
         } catch (Exception e) {
             log.error("[Apick API 오류] WebClient 요청 실패: {}", e.getMessage(), e);
@@ -90,5 +95,51 @@ public class ApickResidentIdService {
             err.put("error", e.getMessage());
             return err;
         }
+    }
+
+    /**
+     * Apick API 응답을 검증합니다.
+     * data.result가 1이 아니면 신원인증 실패 예외를 발생시킵니다.
+     */
+    private void validateApickResponse(Map<String, Object> response) {
+        if (response == null) {
+            log.error("[신원인증 실패] API 응답이 null입니다.");
+            throw ErrorCode.kycVerificationFailed();
+        }
+
+        Object dataObj = response.get("data");
+        if (!(dataObj instanceof Map)) {
+            log.error("[신원인증 실패] data 필드가 존재하지 않거나 올바르지 않습니다.");
+            throw ErrorCode.kycVerificationFailed();
+        }
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> data = (Map<String, Object>) dataObj;
+
+        Object resultObj = data.get("result");
+
+        Integer result = null;
+
+        try {
+            if (resultObj instanceof Number) {
+                result = ((Number) resultObj).intValue();
+            }
+        } catch (Exception e) {
+            log.error("[신원인증 실패] result 값 변환 실패: {}", e.getMessage());
+            throw ErrorCode.kycVerificationFailed();
+        }
+
+        if (result == null) {
+            log.error("[신원인증 실패] result 값이 존재하지 않습니다. result={}", result);
+            throw ErrorCode.kycVerificationFailed();
+        }
+
+        if (result != 1) {
+            String msg = data.get("msg") != null ? data.get("msg").toString() : "";
+            log.error("[신원인증 실패] result={}, msg={}", result, msg);
+            throw ErrorCode.kycVerificationFailed();
+        }
+
+        log.info("[신원인증 성공] result={}", result);
     }
 }

@@ -25,7 +25,10 @@ public enum ErrorCode {
     NO_INTEREST_SELECTED(BAD_REQUEST, "관심사를 하나도 선택하지 않았습니다.", "40001"),
     INTEREST_NOT_FOUND(NOT_FOUND, "관심사를 찾을 수 없습니다.", "40403"),
     INTEREST_NOT_FOUND_FOR_USER(NOT_FOUND, "사용자에게 등록된 관심사가 없습니다.", "40404"),
-    INVALID_PASSWORD(BAD_REQUEST, "올바르지 못한 비밀번호입니다.", "400");
+    INVALID_PASSWORD(BAD_REQUEST, "올바르지 못한 비밀번호입니다.", "400"),
+    
+    // KYC 관련 오류
+    KYC_VERIFICATION_FAILED(BAD_REQUEST, "신원인증에 실패했습니다.", "40005");
 
     private final HttpStatus status;
     private final String message;
@@ -65,6 +68,10 @@ public enum ErrorCode {
 
     public static CustomException interestNotFoundForUser() {
         return new CustomException(INTEREST_NOT_FOUND_FOR_USER);
+    }
+
+    public static CustomException kycVerificationFailed() {
+        return new CustomException(KYC_VERIFICATION_FAILED);
     }
 
 }
